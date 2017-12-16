@@ -9,6 +9,7 @@ dependencies {
     compile "com.google.inject:guice:$version_guice"
     compile "io.vertx:vertx-web:$version_vertx"
     compile "org.codehaus.groovy:groovy-all:$version_groovy"
+    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$version_jackson"
 
     testCompile "junit:junit:$version_junit"
 }

@@ -6,13 +6,17 @@ import com.gatehill.imposter.server.BaseVerticleTest;
 import com.gatehill.imposter.util.HttpUtil;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-import io.swagger.models.Swagger;
-import io.swagger.parser.SwaggerParser;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.parser.OpenAPIV3Parser;
+import io.swagger.v3.parser.core.models.ParseOptions;
+import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Collections;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -67,7 +71,7 @@ public class OpenApiPluginImplTest extends BaseVerticleTest {
                 // JSON content type in 'Accept' header matches specification example
                 .accept(ContentType.JSON)
                 .when()
-                .get("/simple/apis")
+                .get("/apis")
                 .then()
                 .log().everything()
                 .statusCode(HttpUtil.HTTP_OK)
@@ -88,12 +92,12 @@ public class OpenApiPluginImplTest extends BaseVerticleTest {
                 // JSON content type in 'Accept' header matches specification example
                 .accept(ContentType.JSON)
                 .when()
-                .put("/simple/apis")
+                .put("/apis")
                 .then()
                 .log().everything()
                 .statusCode(HttpUtil.HTTP_CREATED)
                 .body("result", equalTo("success"))
-                .header("MyHeader","MyHeaderValue");
+                .header("MyHeader", "MyHeaderValue");
     }
 
     /**
@@ -111,7 +115,7 @@ public class OpenApiPluginImplTest extends BaseVerticleTest {
                 // do not set JSON content type in 'Accept' header, to force mismatch against specification example
                 .accept(ContentType.TEXT)
                 .when()
-                .get("/simple/apis")
+                .get("/apis")
                 .then()
                 .log().everything()
                 .statusCode(HttpUtil.HTTP_OK)
@@ -161,25 +165,30 @@ public class OpenApiPluginImplTest extends BaseVerticleTest {
 
         testContext.assertNotNull(body);
 
-        final Swagger combined = new SwaggerParser().parse(body);
+        final SwaggerParseResult parseResult = new OpenAPIV3Parser().readContents(body, Collections.emptyList(), new ParseOptions());
+        testContext.assertNotNull(parseResult);
+
+        final OpenAPI combined = parseResult.getOpenAPI();
+        testContext.assertNotNull(combined);
+
         testContext.assertNotNull(combined.getInfo());
         testContext.assertEquals("Imposter Mock APIs", combined.getInfo().getTitle());
 
         // should contain combination of both specs' endpoints
         testContext.assertEquals(4, combined.getPaths().size());
-        testContext.assertTrue(combined.getPaths().keySet().contains("/simple/apis"));
-        testContext.assertTrue(combined.getPaths().keySet().contains("/api/pets"));
+        testContext.assertTrue(combined.getPaths().keySet().contains("/apis"));
+        testContext.assertTrue(combined.getPaths().keySet().contains("/pets"));
     }
 
     @Test
     public void testRequestWithHeaders() throws Exception {
         given()
-            .log().everything()
-            .accept(ContentType.TEXT)
-            .when()
-            .header("Authorization", "AUTH_HEADER")
-            .get("/simple/apis")
-            .then()
-            .statusCode(equalTo(HttpUtil.HTTP_NO_CONTENT));
+                .log().everything()
+                .accept(ContentType.TEXT)
+                .when()
+                .header("Authorization", "AUTH_HEADER")
+                .get("/apis")
+                .then()
+                .statusCode(equalTo(HttpUtil.HTTP_NO_CONTENT));
     }
 }
