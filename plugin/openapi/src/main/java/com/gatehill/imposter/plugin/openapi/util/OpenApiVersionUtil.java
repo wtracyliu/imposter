@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gatehill.imposter.plugin.openapi.OpenApiPluginConfig;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
-import io.swagger.v3.parser.converter.SwaggerConverter;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.apache.commons.io.FileUtils;
@@ -51,7 +50,7 @@ public final class OpenApiVersionUtil {
             parsed = mapper.readValue(specData, HashMap.class);
 
         } catch (IOException e) {
-            throw new RuntimeException(String.format("Error preparsing specification: %s", specPath));
+            throw new RuntimeException(String.format("Error preparsing specification: %s", specPath), e);
         }
 
         // determine version
@@ -62,10 +61,10 @@ public final class OpenApiVersionUtil {
         final SwaggerParseResult parseResult;
         switch (specVersion) {
             case V2:
-                parseResult = new SwaggerConverter().readContents(
+                parseResult = new HackedSwaggerConverter().readContents(
                         specData, Collections.emptyList(), new ParseOptions());
-
                 break;
+
             case V3:
                 parseResult = new OpenAPIV3Parser().readContents(
                         specData, Collections.emptyList(), new ParseOptions());
@@ -84,6 +83,11 @@ public final class OpenApiVersionUtil {
         if (null != parseResult.getMessages()) {
             LOGGER.info("OpenAPI parser messages for: {}: {}", specPath,
                     parseResult.getMessages().stream().collect(Collectors.joining(LINE_SEPARATOR)));
+        }
+
+        if (null == parseResult.getOpenAPI()) {
+            throw new IllegalStateException(String.format("Unable to parse specification: %s",
+                    specPath));
         }
 
         return parseResult.getOpenAPI();
@@ -114,7 +118,7 @@ public final class OpenApiVersionUtil {
             return SpecVersion.V2;
 
         } else {
-            // default to 3
+            // default to v3
             LOGGER.warn("Could not determine version for: {} - guessing V3", specPath);
             return SpecVersion.V3;
         }
