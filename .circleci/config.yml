@@ -66,3 +66,4 @@ workflows:
               only:
                - master
                - develop
+               - feature/openapi-v3
