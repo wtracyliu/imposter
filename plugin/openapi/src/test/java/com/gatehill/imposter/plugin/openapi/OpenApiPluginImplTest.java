@@ -62,10 +62,9 @@ public class OpenApiPluginImplTest extends BaseVerticleTest {
      * content type in the 'Accept' matches that in the specification example.
      *
      * @param testContext
-     * @throws Exception
      */
     @Test
-    public void testServeDefaultExampleMatchContentType(TestContext testContext) throws Exception {
+    public void testServeDefaultExampleMatchContentType(TestContext testContext) {
         final String body = given()
                 .log().everything()
                 // JSON content type in 'Accept' header matches specification example
@@ -82,11 +81,9 @@ public class OpenApiPluginImplTest extends BaseVerticleTest {
 
     /**
      * Should return the example from the specification when the script triggers an HTTP 201 Created status code.
-     *
-     * @throws Exception
      */
     @Test
-    public void testServeScriptedExample() throws Exception {
+    public void testServeScriptedExample() {
         given()
                 .log().everything()
                 // JSON content type in 'Accept' header matches specification example
@@ -105,11 +102,10 @@ public class OpenApiPluginImplTest extends BaseVerticleTest {
      * content type in the 'Accept' header does not match that in the specification example.
      *
      * @param testContext
-     * @throws Exception
      * @see OpenApiPluginConfig#isPickFirstIfNoneMatch()
      */
     @Test
-    public void testServeDefaultExampleNoExactMatch(TestContext testContext) throws Exception {
+    public void testServeDefaultExampleNoExactMatch(TestContext testContext) {
         final String body = given()
                 .log().everything()
                 // do not set JSON content type in 'Accept' header, to force mismatch against specification example
@@ -128,10 +124,9 @@ public class OpenApiPluginImplTest extends BaseVerticleTest {
      * Should return the specification UI.
      *
      * @param testContext
-     * @throws Exception
      */
     @Test
-    public void testGetSpecUi(TestContext testContext) throws Exception {
+    public void testGetSpecUi(TestContext testContext) {
         final String body = given()
                 .log().everything()
                 .accept(ContentType.TEXT)
@@ -149,10 +144,9 @@ public class OpenApiPluginImplTest extends BaseVerticleTest {
      * Should return a combined specification.
      *
      * @param testContext
-     * @throws Exception
      */
     @Test
-    public void testGetCombinedSpec(TestContext testContext) throws Exception {
+    public void testGetCombinedSpec(TestContext testContext) {
         final String body = given()
                 .log().everything()
                 .accept(ContentType.JSON)
@@ -174,14 +168,22 @@ public class OpenApiPluginImplTest extends BaseVerticleTest {
         testContext.assertNotNull(combined.getInfo());
         testContext.assertEquals("Imposter Mock APIs", combined.getInfo().getTitle());
 
-        // should contain combination of both specs' endpoints
-        testContext.assertEquals(4, combined.getPaths().size());
+        // should contain combination of all specs' endpoints
+        testContext.assertEquals(6, combined.getPaths().size());
+
+        // OASv2
         testContext.assertTrue(combined.getPaths().keySet().contains("/apis"));
+        testContext.assertTrue(combined.getPaths().keySet().contains("/v2"));
         testContext.assertTrue(combined.getPaths().keySet().contains("/pets"));
+        testContext.assertTrue(combined.getPaths().keySet().contains("/pets/{id}"));
+
+        // OASv3
+        testContext.assertTrue(combined.getPaths().keySet().contains("/oas3/apis"));
+        testContext.assertTrue(combined.getPaths().keySet().contains("/oas3/v2"));
     }
 
     @Test
-    public void testRequestWithHeaders() throws Exception {
+    public void testRequestWithHeaders() {
         given()
                 .log().everything()
                 .accept(ContentType.TEXT)

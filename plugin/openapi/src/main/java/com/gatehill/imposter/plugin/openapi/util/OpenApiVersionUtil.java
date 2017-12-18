@@ -80,7 +80,7 @@ public final class OpenApiVersionUtil {
                     specPath));
         }
 
-        if (null != parseResult.getMessages()) {
+        if (null != parseResult.getMessages() && !parseResult.getMessages().isEmpty()) {
             LOGGER.info("OpenAPI parser messages for: {}: {}", specPath,
                     parseResult.getMessages().stream().collect(Collectors.joining(LINE_SEPARATOR)));
         }
