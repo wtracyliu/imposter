@@ -40,9 +40,6 @@ public class OpenApiServiceImpl implements OpenApiService {
 
         final OpenAPI combined = new OpenAPI();
 
-        // FIXME: determine how to incorporate this
-//        combined.basePath(basePath);
-
         final Info info = new Info();
         combined.setInfo(info);
 
@@ -87,11 +84,12 @@ public class OpenApiServiceImpl implements OpenApiService {
                 allComponents.add(spec.getComponents());
             }
 
-            // FIXME: determine how to incorporate this
             // prefix paths with base url
-//            final String childBasePath = ofNullable(spec.getBasePath()).orElse("");
+            final String childBasePath = ofNullable(basePath).orElse("");
 
-            final String childBasePath = "";
+            // TODO determine whether to incorporate OASv2 basePath (converted to OASv3 'server' entries)
+            // into child base path
+
             getOrEmpty(spec.getPaths()).forEach((path, pathDetails) ->
                     paths.put(childBasePath + path, pathDetails));
         });
