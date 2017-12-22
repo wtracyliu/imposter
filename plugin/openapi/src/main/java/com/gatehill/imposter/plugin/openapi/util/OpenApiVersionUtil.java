@@ -55,7 +55,7 @@ public final class OpenApiVersionUtil {
 
         // determine version
         final SpecVersion specVersion = determineVersion(specPath, parsed);
-        LOGGER.debug("Determined version: {} for: {}", specVersion, specPath);
+        LOGGER.debug("Using version: {} parser for: {}", specVersion, specPath);
 
         // convert or parse directly
         final SwaggerParseResult parseResult;
@@ -108,7 +108,10 @@ public final class OpenApiVersionUtil {
     private static SpecVersion determineVersion(Path specPath, Map parsed) {
         LOGGER.trace("Determining version for: {}", specPath);
 
-        final String versionString = ofNullable(parsed.get("swagger")).orElse("").toString();
+        final String versionString = ofNullable(parsed.get("openapi"))
+                .orElse(ofNullable(parsed.get("swagger")).orElse(""))
+                .toString();
+
         if (versionString.equals("3") || versionString.startsWith("3.")) {
             // OpenAPI v3
             return SpecVersion.V3;
